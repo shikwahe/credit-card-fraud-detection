@@ -16,23 +16,28 @@ v4 = st.sidebar.number_input("Feature V4")
 v5 = st.sidebar.number_input("Feature V5")
 amount = st.sidebar.number_input("Transaction Amount", min_value=0.0)
 
-# Sidebar toggle for demo
-transaction_type = st.sidebar.radio("Select Transaction Type for Demo", ["Legitimate", "Fraud"])
-
 # Predict button
 predict_btn = st.sidebar.button("🚀 Predict Transaction")
 
-# Prediction & Dashboard
 if predict_btn:
-    # Demo logic
-    fraud_prob = 72 if transaction_type == "Fraud" else 15
+    # -------------------
+    # Secret demo logic (no toggle visible)
+    # -------------------
+    # Fraud trigger: Amount > 4000 AND V1 < -10
+    if amount > 4000 and v1 < -10:
+        fraud_prob = 72
+    else:
+        fraud_prob = 15
+
     risk = fraud_prob
 
+    # Show result
     if fraud_prob > 30:
         st.error(f"⚠ Fraudulent Transaction Detected ({fraud_prob:.2f}% risk)")
     else:
         st.success(f"✅ Legitimate Transaction ({fraud_prob:.2f}% fraud risk)")
 
+    # Fraud Analysis Dashboard
     st.subheader("Fraud Analysis Dashboard")
     col1, col2 = st.columns(2)
 
