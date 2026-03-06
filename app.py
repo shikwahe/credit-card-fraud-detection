@@ -1,51 +1,13 @@
-import streamlit as st
-import matplotlib.pyplot as plt
-
-# Page configuration
-st.set_page_config(page_title="Credit Card Fraud Detection", layout="wide")
-
-# Background and title styling
-st.markdown("""
-<style>
-.stApp {
-    background: linear-gradient(135deg,#0f2027,#203a43,#2c5364);
-    color:white;
-}
-.title {
-    font-size:42px;
-    font-weight:bold;
-    text-align:center;
-    padding:12px;
-    border-radius:10px;
-    background: linear-gradient(90deg,#00c6ff,#0072ff);
-    margin-bottom:25px;
-}
-</style>
-""", unsafe_allow_html=True)
-
-# App title
-st.markdown('<div class="title">💳 Credit Card Fraud Detection System</div>', unsafe_allow_html=True)
-st.write("### Enter transaction details to check if it is Fraud or Legitimate")
-
-# Sidebar inputs
-st.sidebar.header("Transaction Details")
-v1 = st.sidebar.number_input("Feature V1")
-v2 = st.sidebar.number_input("Feature V2")
-v3 = st.sidebar.number_input("Feature V3")
-v4 = st.sidebar.number_input("Feature V4")
-v5 = st.sidebar.number_input("Feature V5")
-amount = st.sidebar.number_input("Transaction Amount", min_value=0.0)
+# Sidebar choice for demo
+transaction_type = st.sidebar.radio("Select Transaction Type for Demo", ["Legitimate", "Fraud"])
 
 predict_btn = st.sidebar.button("🚀 Predict Transaction")
-
-st.divider()
 
 if predict_btn:
     # -------------------
     # DEMO ONLY LOGIC
     # -------------------
-    # If Amount > 4000 (or any condition you choose), show fraud
-    if amount > 4000:  # change this threshold if needed
+    if transaction_type == "Fraud":
         fraud_prob = 72
     else:
         fraud_prob = 15
