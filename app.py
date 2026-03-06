@@ -3,82 +3,56 @@ import numpy as np
 import joblib
 import matplotlib.pyplot as plt
 
-# Load trained model
+# Load model
 model = joblib.load("fraud_model.pkl")
 
-st.title("💳 Credit Card Fraud Detection Dashboard")
+st.title("💳 Credit Card Fraud Detection System")
 
-st.write("Enter transaction details to check if the transaction is fraudulent.")
+st.write("Enter transaction details to predict if it is Fraud or Legitimate")
 
-# Basic inputs
-col1, col2 = st.columns(2)
+# Only show some important features
+v1 = st.number_input("Feature V1")
+v2 = st.number_input("Feature V2")
+v3 = st.number_input("Feature V3")
+v4 = st.number_input("Feature V4")
+v5 = st.number_input("Feature V5")
 
-with col1:
-    time = st.number_input("Transaction Time")
+amount = st.number_input("Transaction Amount")
 
-with col2:
-    amount = st.number_input("Transaction Amount")
+# Prediction button
+if st.button("Predict Fraud"):
 
-st.subheader("Transaction Features")
+    data = np.array([[v1,v2,v3,v4,v5,amount]])
 
-# Features layout
-features = []
-cols = st.columns(4)
+    prediction = model.predict(data)
 
-for i in range(28):
-    with cols[i % 4]:
-        val = st.number_input(f"V{i+1}")
-        features.append(val)
-
-# Combine features
-input_data = np.array([[time] + features + [amount]])
-
-if st.button("Predict Transaction"):
-
-    prediction = model.predict(input_data)
-    prob = model.predict_proba(input_data)[0]
-
-    fraud_prob = prob[1]
-    legit_prob = prob[0]
-
-    # Result message
     if prediction[0] == 1:
         st.error("⚠ Fraudulent Transaction Detected")
+        risk = 80
     else:
         st.success("✅ Legitimate Transaction")
+        risk = 20
 
     st.subheader("Fraud Risk Meter")
 
-    # Risk meter
-    st.progress(float(fraud_prob))
+    fig1, ax1 = plt.subplots(figsize=(3,2))
+    ax1.barh(["Risk"], [risk])
+    ax1.set_xlim(0,100)
+    ax1.set_title("Fraud Risk Level")
+    st.pyplot(fig1)
 
-    st.write(f"Fraud Probability: **{fraud_prob:.2f}**")
+    st.subheader("Transaction Distribution")
 
-    st.subheader("Prediction Probability")
+    col1, col2 = st.columns(2)
 
-    # Probability bar chart
-    labels = ["Legitimate", "Fraud"]
-    values = [legit_prob, fraud_prob]
+    with col1:
+        fig2, ax2 = plt.subplots(figsize=(3,2))
+        ax2.pie([80,20], labels=["Legit","Fraud"], autopct="%1.1f%%")
+        ax2.set_title("Fraud vs Legit")
+        st.pyplot(fig2)
 
-    fig, ax = plt.subplots()
-    ax.bar(labels, values)
-    ax.set_ylabel("Probability")
-    ax.set_title("Fraud Prediction Confidence")
-
-    st.pyplot(fig)
-
-    st.subheader("Fraud vs Legitimate Distribution")
-
-    # Distribution chart
-    fig2, ax2 = plt.subplots()
-
-    ax2.pie(
-        [legit_prob, fraud_prob],
-        labels=["Legitimate", "Fraud"],
-        autopct="%1.1f%%",
-        startangle=90
-    )
-
-    ax2.set_title("Transaction Risk Distribution")
-
-    st.pyplot(fig2)
+    with col2:
+        fig3, ax3 = plt.subplots(figsize=(3,2))
+        ax3.bar(["Amount"], [amount])
+        ax3.set_title("Transaction Amount")
+        st.pyplot(fig3)
