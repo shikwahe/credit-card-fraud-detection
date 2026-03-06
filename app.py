@@ -4,35 +4,24 @@ import joblib
 import matplotlib.pyplot as plt
 
 # Page configuration
-st.set_page_config(page_title="Fraud Detection Dashboard", layout="wide")
+st.set_page_config(page_title="Credit Card Fraud Detection", layout="wide")
 
-# --------- Custom Styling (Blue Background + Title Highlight) ----------
+# Background styling
 st.markdown("""
 <style>
-
 .stApp {
     background: linear-gradient(135deg,#0f2027,#203a43,#2c5364);
     color:white;
 }
-
-.main-title{
-    font-size:40px;
-    font-weight:800;
+.title {
+    font-size:42px;
+    font-weight:bold;
     text-align:center;
-    padding:10px;
+    padding:12px;
     border-radius:10px;
     background: linear-gradient(90deg,#00c6ff,#0072ff);
-    color:white;
-    margin-bottom:20px;
+    margin-bottom:25px;
 }
-
-.metric-box{
-    background:#1f4e79;
-    padding:15px;
-    border-radius:10px;
-    text-align:center;
-}
-
 </style>
 """, unsafe_allow_html=True)
 
@@ -40,12 +29,11 @@ st.markdown("""
 model = joblib.load("fraud_model.pkl")
 
 # Title
-st.markdown('<div class="main-title">💳 Credit Card Fraud Detection System</div>', unsafe_allow_html=True)
+st.markdown('<div class="title">💳 Credit Card Fraud Detection System</div>', unsafe_allow_html=True)
+st.write("### Enter transaction details to check if it is Fraud or Legitimate")
 
-st.write("### Predict whether a transaction is **Fraudulent or Legitimate**")
-
-# Sidebar Inputs
-st.sidebar.header("Enter Transaction Details")
+# Sidebar inputs
+st.sidebar.header("Transaction Details")
 
 v1 = st.sidebar.number_input("Feature V1")
 v2 = st.sidebar.number_input("Feature V2")
@@ -54,23 +42,14 @@ v4 = st.sidebar.number_input("Feature V4")
 v5 = st.sidebar.number_input("Feature V5")
 amount = st.sidebar.number_input("Transaction Amount", min_value=0.0)
 
-predict_btn = st.sidebar.button("🚀 Predict Fraud")
-
-# Dashboard metrics
-colA, colB, colC = st.columns(3)
-
-colA.metric("Model Accuracy", "94%")
-colB.metric("Total Transactions", "284,807")
-colC.metric("Fraud Cases", "492")
+predict_btn = st.sidebar.button("🚀 Predict Transaction")
 
 st.divider()
 
-# Prediction
 if predict_btn:
 
     try:
-
-        # Create feature array
+        # Create full feature array
         data = np.zeros((1, model.n_features_in_))
 
         data[0][0] = v1
@@ -80,52 +59,51 @@ if predict_btn:
         data[0][4] = v5
         data[0][-1] = amount
 
+        # Prediction
         prediction = model.predict(data)
 
-        if prediction[0] == 1:
-            st.error("⚠ Fraudulent Transaction Detected")
-            risk = 80
+        # Probability
+        prob = model.predict_proba(data)
+        fraud_prob = prob[0][1] * 100
+
+        # Result
+        if fraud_prob > 30:
+            st.error(f"⚠ Fraudulent Transaction Detected ({fraud_prob:.2f}% risk)")
         else:
-            st.success("✅ Legitimate Transaction")
-            risk = 20
+            st.success(f"✅ Legitimate Transaction ({fraud_prob:.2f}% fraud risk)")
 
-        st.subheader("📊 Fraud Analysis")
+        st.subheader("Fraud Analysis Dashboard")
 
-        # Side-by-side charts
         col1, col2 = st.columns(2)
 
         # Risk Meter
         with col1:
 
-            st.markdown("### Fraud Risk Level")
+            risk = fraud_prob
+            color = "red" if risk > 30 else "green"
 
             fig1, ax1 = plt.subplots(figsize=(4,2))
-
-            color = "red" if risk > 50 else "green"
-
-            ax1.barh(["Risk"], [risk], color=color)
+            ax1.barh(["Risk Level"], [risk], color=color)
             ax1.set_xlim(0,100)
-            ax1.set_xlabel("Risk %")
-            ax1.set_title("Risk Meter")
+            ax1.set_xlabel("Fraud Risk %")
+            ax1.set_title("Fraud Risk Meter")
 
             st.pyplot(fig1)
 
         # Fraud vs Legit Chart
         with col2:
 
-            st.markdown("### Fraud vs Legit Distribution")
-
             fig2, ax2 = plt.subplots(figsize=(4,3))
-
             ax2.pie(
-                [80,20],
-                labels=["Legit","Fraud"],
+                [100-risk, risk],
+                labels=["Legitimate","Fraud"],
                 autopct="%1.1f%%",
                 colors=["#00ff9f","#ff4b4b"]
             )
+            ax2.set_title("Fraud vs Legit Distribution")
 
             st.pyplot(fig2)
 
     except Exception as e:
-        st.error("⚠ Model prediction failed.")
+        st.error("⚠ Prediction failed.")
         st.write(e)
